@@ -3,18 +3,21 @@ const checkAuth = require("../utils/checkAuth");
 const { cloudinary } = require("../utils/cloudinary");
 
 exports.createInvestment = async (req, res) => {
-  const decodeduser = checkAuth(req);
+  checkAuth(req, res);
 
-  const {
-    name,
-    description,
-    maturityDate,
-    harvestingDate,
-    plantingDate,
-    paymentClosingDate,
-  } = req.body;
+  // const {
+  //   name,
+  //   description,
+  //   maturityDate,
+  //   harvestingDate,
+  //   plantingDate,
+  //   paymentClosingDate,
+  // } = req.body;
+
+  const reqBody = { ...req.body };
 
   try {
+    // res_promises will be an array of promises
     let public_ids = await reqBody.images.map(
       (file) =>
         new Promise((resolve, reject) => {
@@ -25,51 +28,114 @@ exports.createInvestment = async (req, res) => {
         })
     );
 
-    console.log(public_ids);
+    public_ids = await Promise.all(public_ids);
 
-    let newInvestment = new Investment({
-      name,
+    const newInvestment = new Investment({
+      ...req.body,
       images: [...public_ids],
-      description,
-      maturityDate,
-      harvestingDate,
-      plantingDate,
-      paymentClosingDate,
       createdAt: new Date().toISOString(),
     });
 
-    await newInvestment.save();
-
-    return res.status(200).json({
-      status: "success",
-      investment: newInvestment,
+    newInvestment.save().then((result) => {
+      return res.status(200).json({
+        status: "success",
+        investment: result,
+      });
     });
   } catch (err) {
-    return res.status(500).json({
+    console.log(err);
+  }
+};
+
+exports.join = async (req, res) => {
+  try {
+    const decodeduser = checkAuth(req, res);
+
+    const investmentId = req.params.id;
+
+    const investment = await Investment.findById(investmentId);
+
+    if (investment) {
+      investment.participants.unshift({
+        id: decodeduser.id,
+        name: decodeduser.firstname,
+        paid: false,
+      });
+
+      let savedDoc = await investment.save();
+
+      return res.status(200).json({
+        status: "success",
+        investment: savedDoc,
+      });
+    }
+  } catch (err) {
+    res.status(500).json({
       status: "fail",
-      message: "Internal server error",
+      message: "Internal Server Error",
     });
   }
 };
 
-exports.join = (req, res) => {
-  const decodeduser = checkAuth(req);
+exports.getAllInvestments = async (req, res) => {
+  try {
+    const investments = await Investment.find();
 
-  let investmentId = req.params.id;
-
-  const investment = Investment.findById(investmentId);
-
-  if (investment) {
-    investment.participants.push({
-      userId: decodeduser.id,
-      paid: true,
+    if (investments) {
+      return res.status(200).json({
+        status: "success",
+        investments,
+      });
+    } else {
+      return res.status(404).json({
+        status: "fail",
+        message: "Investments not found",
+      });
+    }
+  } catch (err) {
+    res.status(500).json({
+      status: "fail",
+      message: "Internal Server Error",
     });
+  }
+};
 
-    await investment.save();
+exports.getInvestment = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const investment = await Investment.findById(id);
 
-    res.json({
+    if (investment) {
+      return res.status(200).json({
+        status: "success",
+        investment,
+      });
+    } else {
+      return res.status(404).json({
+        status: "fail",
+        message: "Investment not found",
+      });
+    }
+  } catch (err) {
+    res.status(500).json({
+      status: "fail",
+      message: "Internal Server Error",
+    });
+  }
+};
+
+exports.deleteInvestment = async (req, res) => {
+  try {
+    const investmentId = req.params.id;
+    await Investment.findByIdAndDelete(investmentId);
+
+    return res.status(200).json({
       status: "success",
-      investment,
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: "fail",
+      message: "Internal Server Error",
     });
   }
 };

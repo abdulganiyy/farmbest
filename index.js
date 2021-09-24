@@ -11,15 +11,14 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 app.use("/users", require("./routes/usersRoutes"));
-app.use("/investments", require("./routes/investmensRoutes"));
+app.use("/investments", require("./routes/investmentsRoutes"));
+
+//
 
 const mongoURI = process.env.MONGOURI;
+// "mongodb+srv://tajudeenazeez:azeez2021@cluster0.tshny.mongodb.net/farm-best?retryWrites=true&w=majority";
 mongoose
-  .connect(mongoURI, {
-    useNewUrlParser: true,
-    useFindAndModify: true,
-    useUnifiedTopology: true,
-  })
+  .connect(mongoURI)
   .then(() => {
     console.log("mongodb connected successfully");
   })
@@ -28,6 +27,7 @@ mongoose
   });
 
 const PORT = process.env.PORT || 8000;
+
 app.listen(PORT, () => {
-  console.log(`app listening on port ${PORT}`);
+  console.log(`server listening on port ${PORT}`);
 });

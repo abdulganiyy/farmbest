@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 exports.register = async (req, res) => {
-  const { email, password } = req.body;
+  const { firstname, lastname, email, password } = req.body;
 
   try {
     const user = await User.findOne({
@@ -27,7 +27,12 @@ exports.register = async (req, res) => {
     await newUser.save();
 
     const token = jwt.sign(
-      { id: newUser._id, email: newUser.email },
+      {
+        id: newUser._id,
+        email: newUser.email,
+        firstname: newUser.firstname,
+        lastname: newUser.lastname,
+      },
       process.env.SECRET_KEY,
       { expiresIn: "1hr" }
     );
@@ -47,9 +52,9 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
-    if (!username || !password) {
+    if (!email || !password) {
       return res.status(400).json({
         status: "fail",
         message: "Please provide correct fields details",
@@ -57,7 +62,7 @@ exports.login = async (req, res) => {
     }
 
     const user = await User.findOne({
-      $or: [{ username: username }, { email: username }],
+      email,
     });
 
     if (!user) {
@@ -80,6 +85,8 @@ exports.login = async (req, res) => {
       {
         id: user._id,
         email: user.email,
+        firstname: user.firstname,
+        lastname: user.lastname,
       },
       process.env.SECRET_KEY,
       { expiresIn: "1hr" }
@@ -94,24 +101,6 @@ exports.login = async (req, res) => {
     return res.status(500).json({
       status: "fail",
       message: "Internal Server Error",
-    });
-  }
-};
-
-// get all users
-
-exports.getAllUsers = async (req, res) => {
-  const users = await User.find();
-
-  if (users) {
-    res.status(200).json({
-      status: "success",
-      users,
-    });
-  } else {
-    res.status(404).json({
-      status: "fail",
-      message: "users not found",
     });
   }
 };
