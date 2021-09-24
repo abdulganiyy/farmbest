@@ -3,16 +3,14 @@ const checkAuth = require("../utils/checkAuth");
 const { cloudinary } = require("../utils/cloudinary");
 
 exports.createInvestment = async (req, res) => {
-  checkAuth(req, res);
+  const decodeduser = checkAuth(req, res);
 
-  // const {
-  //   name,
-  //   description,
-  //   maturityDate,
-  //   harvestingDate,
-  //   plantingDate,
-  //   paymentClosingDate,
-  // } = req.body;
+  if (decodeduser.role !== "admin") {
+    return res.status(401).json({
+      status: "fail",
+      message: "You are not authorised to perform this role",
+    });
+  }
 
   const reqBody = { ...req.body };
 
@@ -57,8 +55,8 @@ exports.join = async (req, res) => {
 
     if (investment) {
       investment.participants.unshift({
-        id: decodeduser.id,
-        name: decodeduser.firstname,
+        userid: decodeduser.id,
+        username: decodeduser.username,
         paid: false,
       });
 
@@ -126,6 +124,15 @@ exports.getInvestment = async (req, res) => {
 
 exports.deleteInvestment = async (req, res) => {
   try {
+    const decodeduser = checkAuth(req, res);
+
+    if (decodeduser.role !== "admin") {
+      return res.status(401).json({
+        status: "fail",
+        message: "You are not authorised to perform this role",
+      });
+    }
+
     const investmentId = req.params.id;
     await Investment.findByIdAndDelete(investmentId);
 

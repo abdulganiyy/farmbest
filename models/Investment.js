@@ -13,13 +13,13 @@ const investmentSchema = new Schema({
   paymentClosingDate: String,
   participants: [
     {
-      name: String,
-      id: String,
+      username: String,
+      userid: String,
       paid: Boolean,
     },
   ],
-  reviews: [{ name: String, id: String, message: String }],
-  ratings: [{ name: String, id: String, rating: Number }],
+  reviews: [{ username: String, userid: String, message: String }],
+  ratings: [{ username: String, userid: String, rating: Number }],
   createdAt: Date,
 });
 
