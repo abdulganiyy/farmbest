@@ -10,7 +10,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "*",
+    origin: "https://relaxed-bhabha-1e9ccd.netlify.app",
   })
 );
 app.use(express.json({ limit: "50mb" }));
