@@ -5,10 +5,10 @@ const { Schema } = mongoose;
 const orderSchema = new Schema({
   user: Schema.Types.ObjectId,
   paymentStatus: String,
-  investments: [
+  items: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Investment",
+      investmentName: String,
+      unitsBought: Number,
     },
   ],
   createdAt: Date,

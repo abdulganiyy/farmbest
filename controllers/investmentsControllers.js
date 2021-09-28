@@ -57,7 +57,6 @@ exports.join = async (req, res) => {
       investment.participants.unshift({
         userid: decodeduser.id,
         username: decodeduser.username,
-        paid: false,
       });
 
       let savedDoc = await investment.save();
